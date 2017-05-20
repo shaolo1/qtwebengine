@@ -84,7 +84,6 @@ class WebPopupWindow(QWidget):
         self.m_addressBar.setUrl(url)
 
     def handleGeometryChangeRequested(self, newGeometry: QRect):
-        print('handleGeometryChangeRequested')
         self.m_view.setMinimumSize(newGeometry.width(), newGeometry.height())
         self.move(newGeometry.topLeft() - self.m_view.pos())
         # let the layout do the magic
@@ -92,7 +91,7 @@ class WebPopupWindow(QWidget):
         self.show()
 
     def handleIconChanged(self, icon: QIcon):
-        if (icon.isNull()):
+        if icon.isNull():
             self.m_addressBar.setFavIcon(QIcon(":defaulticon.png"))
         else:
             self.m_addressBar.setFavIcon(icon)

@@ -311,7 +311,7 @@ class BrowserWindow(QMainWindow):
 
     def handleWebViewUrlChanged(self, url: QUrl):
         self.m_urlLineEdit.setUrl(url)
-        if (url.isEmpty()):
+        if url.isEmpty():
             self.m_urlLineEdit.setFocus()
 
     def handleWebActionEnabledChanged(self, action: QWebEnginePage.WebAction, enabled: bool):
@@ -328,7 +328,7 @@ class BrowserWindow(QMainWindow):
             self.m_stopAction.setEnabled(enabled)
             return
         # qWarning
-        print("Unhandled webActionChanged signal", action)
+        print("Unhandled webActionChanged signal", action, flush=True)
 
     def handleWebViewTitleChanged(self, title: str):
         if not title:
@@ -368,7 +368,7 @@ class BrowserWindow(QMainWindow):
         self.loadPageUrl(QUrl.fromUserInput(page))
 
     def loadPageUrl(self, url: QUrl):
-        if (url.isValid()):
+        if url.isValid():
             self.m_urlLineEdit.setUrl(url)
             self.m_tabWidget.setUrl(url)
 
@@ -398,5 +398,7 @@ class BrowserWindow(QMainWindow):
             offset = action.data()
             from browser import Browser
             windows = Browser.instance().windows()
-            windows[offset].activateWindow()
-            windows[offset].currentTab().setFocus()
+            activate = windows[offset]
+            activate.activateWindow()
+            if isinstance(windows[offset], BrowserWindow):  # WebPopupWindow instances have no tabs
+                windows[offset].currentTab().setFocus()

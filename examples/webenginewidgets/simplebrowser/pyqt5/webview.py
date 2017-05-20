@@ -55,6 +55,7 @@ class WebView(QWebEngineView):
     def __init__(self, parent: QWidget=None):
         super().__init__(parent)
         self.m_loadProgress = 0
+        self.popup_menu = None
         self.loadProgress.connect(self._load_progress)
         self.loadFinished.connect(self._load_finished)
         self.renderProcessTerminated.connect(self._render_process_terminated)
@@ -79,7 +80,8 @@ class WebView(QWebEngineView):
             status = ''
         btn = QMessageBox.question(self.window(), status,
                                    self.tr("Render process exited with code: %1\n"
-                                           "Do you want to reload the page ?").format(statusCode))
+                                           "Do you want to reload the page ?").format(statusCode),
+                                   QMessageBox.Yes|QMessageBox.No)
         if btn == QMessageBox.Yes:
             QTimer.singleShot(0, self.reload)
 
@@ -121,7 +123,9 @@ class WebView(QWebEngineView):
             return mainWindow.currentTab()
         if type == QWebEnginePage.WebDialog:
             from webpopupwindow import WebPopupWindow
+            from browser import Browser
             popup = WebPopupWindow(self.page().profile())
+            Browser.instance().addWindow(popup)  # TODO: not a "BrowserWindow", but need it to stay in scope to prevent "TypeError: invalid result from WebView.createWindow(), wrapped C/C++ object of type WebView has been deleted"..see http://www.popuptest.com/popuptest4.html
             return popup.view()
         print('createWindow: unhandled type', type)
         return None

@@ -165,9 +165,6 @@ class TabWidget(QTabWidget):
 
     def _load_progress(self, progress: int):
         webView = self.sender()
-        if not isinstance(webView, QWidget):
-            print('_load_progress...wrong sender?', webView.type, progress)
-            return
         if self.currentIndex() == self.indexOf(webView):
             self.loadProgress.emit(progress)
 
@@ -187,7 +184,7 @@ class TabWidget(QTabWidget):
 
     def _web_action_enabled_changed(self, action: QWebEnginePage.WebAction, enabled: bool):
         webView = self.sender()
-        if self.currentIndex() ==  self.indexOf(webView):
+        if self.currentIndex() == self.indexOf(webView):
             self.webActionEnabledChanged.emit(action, enabled)
 
     def _load_started(self):
@@ -197,7 +194,7 @@ class TabWidget(QTabWidget):
             self.setTabIcon(index, QIcon(":view-refresh.png"))
 
     def _window_close_requested(self):
-        webView = self.sender()
+        webView = self.sender().view()
         index = self.indexOf(webView)
         if index >= 0:
             self.closeTab(index)

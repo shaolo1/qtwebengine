@@ -59,67 +59,71 @@ class WebPage(QWebEnginePage):
 
     def certificateError(self, error: QWebEngineCertificateError) -> bool:
         mainWindow = self.view().window()
-        if (error.isOverridable()):
-            dialog = QDialog(mainWindow)
+        if error.isOverridable():
+            dialog = QDialog(mainWindow, Qt.WindowFlags() & ~Qt.WindowContextHelpButtonHint)
             dialog.setModal(True)
-            dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+            # dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
             certificateDialog = Ui_CertificateErrorDialog()
             certificateDialog.setupUi(dialog)
             certificateDialog.m_iconLabel.setText('')
-            icon = QIcon(mainWindow.style().standardIcon(QStyle.SP_MessageBoxWarning, 0, mainWindow))
+            icon = QIcon(mainWindow.style().standardIcon(QStyle.SP_MessageBoxWarning, widget=mainWindow))
             certificateDialog.m_iconLabel.setPixmap(icon.pixmap(32, 32))
             certificateDialog.m_errorLabel.setText(error.errorDescription())
             dialog.setWindowTitle(self.tr("Certificate Error"))
             return dialog.exec() == QDialog.Accepted
 
-        QMessageBox.critical(mainWindow, self.tr("Certificate Error"), error.errorDescription())
+        QMessageBox.critical(mainWindow, self.tr("Certificate Error"), error.errorDescription(), QMessageBox.Ok)
         return False
 
     def handleAuthenticationRequired(self, requestUrl: QUrl, auth: QAuthenticator):
         mainWindow = self.view().window()
-        dialog = QDialog(mainWindow)
+        dialog = QDialog(mainWindow, Qt.WindowFlags() & ~Qt.WindowContextHelpButtonHint)
         dialog.setModal(True)
-        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        # dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         passwordDialog = Ui_PasswordDialog()
         passwordDialog.setupUi(dialog)
 
         passwordDialog.m_iconLabel.setText('')
-        icon = QIcon(mainWindow.style().standardIcon(QStyle.SP_MessageBoxQuestion, mainWindow))
+        icon = QIcon(mainWindow.style().standardIcon(QStyle.SP_MessageBoxQuestion, widget=mainWindow))
         passwordDialog.m_iconLabel.setPixmap(icon.pixmap(32, 32))
 
-        # introMessage = self.tr("Enter username and password for \"{}\" at {}").format(
-        #     auth.realm(), requestUrl.toString().toHtmlEscaped())
-        # passwordDialog.m_infoLabel.setText(introMessage)
-        # passwordDialog.m_infoLabel.setWordWrap(True)
-        #
-        # if (dialog.exec() == QDialog.Accepted):
-        #     auth.setUser(passwordDialog.m_userNameLineEdit.text())
-        #     auth.setPassword(passwordDialog.m_passwordLineEdit.text())
-        # else:
-        #     # Set authenticator null if dialog is cancelled
-        #     *auth = QAuthenticator()
+        introMessage = self.tr("Enter username and password for \"{}\" at {}").format(
+            # auth.realm(), requestUrl.toString().toHtmlEscaped())
+            auth.realm(), requestUrl.toString())  # TODO: toHtmlEscaped()?
+        passwordDialog.m_infoLabel.setText(introMessage)
+        passwordDialog.m_infoLabel.setWordWrap(True)
 
-    def handleProxyAuthenticationRequired(self, QUrl , auth: QAuthenticator, proxyHost: str):
+        if dialog.exec() == QDialog.Accepted:
+            auth.setUser(passwordDialog.m_userNameLineEdit.text())
+            auth.setPassword(passwordDialog.m_passwordLineEdit.text())
+        else:
+            # Set authenticator null if dialog is cancelled
+            # auth = QAuthenticator()
+            self.setHtml('auth canceled')  # TODO: proper workaround?
+
+    def handleProxyAuthenticationRequired(self, requestUrl: QUrl, auth: QAuthenticator, proxyHost: str):
         mainWindow = self.view().window()
-        dialog = QDialog(mainWindow)
+        dialog = QDialog(mainWindow, Qt.WindowFlags() & ~Qt.WindowContextHelpButtonHint)
         dialog.setModal(True)
-        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        # dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         passwordDialog = Ui_PasswordDialog()
         passwordDialog.setupUi(dialog)
 
         passwordDialog.m_iconLabel.setText('')
-        icon = QIcon(mainWindow.style().standardIcon(QStyle.SP_MessageBoxQuestion, 0, mainWindow))
+        icon = QIcon(mainWindow.style().standardIcon(QStyle.SP_MessageBoxQuestion, widget=mainWindow))
         passwordDialog.m_iconLabel.setPixmap(icon.pixmap(32, 32))
 
         # introMessage = self.tr("Connect to proxy \"%1\" using:").fromat(proxyHost.toHtmlEscaped())
-        # passwordDialog.m_infoLabel.setText(introMessage)
-        # passwordDialog.m_infoLabel.setWordWrap(True)
-        #
-        # if (dialog.exec() == QDialog.Accepted):
-        #     auth.setUser(passwordDialog.m_userNameLineEdit.text())
-        #     auth.setPassword(passwordDialog.m_passwordLineEdit.text())
-        # else:
-        #     # Set authenticator null if dialog is cancelled
-        #     *auth = QAuthenticator()
+        introMessage = self.tr("Connect to proxy \"%1\" using:").fromat(proxyHost)   # TODO: toHtmlEscaped()?
+        passwordDialog.m_infoLabel.setText(introMessage)
+        passwordDialog.m_infoLabel.setWordWrap(True)
+
+        if dialog.exec() == QDialog.Accepted:
+            auth.setUser(passwordDialog.m_userNameLineEdit.text())
+            auth.setPassword(passwordDialog.m_passwordLineEdit.text())
+        else:
+            # Set authenticator null if dialog is cancelled
+            # auth = QAuthenticator()
+            self.setHtml('auth canceled')  # TODO: proper workaround?
